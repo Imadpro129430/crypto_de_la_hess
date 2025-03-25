@@ -84,22 +84,6 @@ const CryptoList = () => {
         <h2 className="text-2xl font-bold mb-4 sm:mb-0">
           Cours des Crypto-monnaies
         </h2>
-
-        <div className="flex items-center">
-          <input
-            type="text"
-            className="px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Rechercher..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button
-            onClick={handleSearch}
-            className="bg-blue-500 text-white py-2 px-4 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Rechercher
-          </button>
-        </div>
       </div>
 
       {cryptos.length === 0 ? (
