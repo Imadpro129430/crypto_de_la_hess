@@ -82,6 +82,7 @@ const Login = () => {
 
         <div className="mt-4 text-center">
           <p>
+            <p>adresse : sio@sio.fr mdp : siosio</p>
             Pas encore de compte ?{" "}
             <Link to="/register" className="text-blue-500 hover:underline">
               S'inscrire

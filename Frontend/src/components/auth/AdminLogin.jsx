@@ -87,6 +87,7 @@ const AdminLogin = () => {
               required
             />
           </div>
+          <p>adresse : admin@example.com mdp : admin123</p>
 
           <button
             type="submit"
