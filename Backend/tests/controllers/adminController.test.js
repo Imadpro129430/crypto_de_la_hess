@@ -1,10 +1,10 @@
-// tests/controllers/adminController.test.js
-const { loginAdmin } = require("../../controllers/adminController");
-const db = require("../../config/db");
+// tests/adminController.test.js
+const { loginAdmin } = require("@/controllers/adminController");
+const db = require("@/config/db");
 const jwt = require("jsonwebtoken");
 
 // Mock des dépendances
-jest.mock("../../config/db", () => ({
+jest.mock("@/config/db", () => ({
   Admin: {
     findOne: jest.fn(),
   },
