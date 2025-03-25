@@ -13,7 +13,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center py-4">
           <div>
             <Link to="/" className="text-xl font-bold">
-              Crypto de la Hess
+              CryptoTracker
             </Link>
           </div>
 
