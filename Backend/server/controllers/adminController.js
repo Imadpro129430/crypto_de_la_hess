@@ -1,6 +1,5 @@
 // controllers/adminController.js
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken"); // Importation JWT
+const jwt = require("jsonwebtoken");
 const db = require("../config/db");
 const Admin = db.Admin;
 const User = db.User;
@@ -9,81 +8,31 @@ const Crypto = db.Crypto;
 // Authentification admin
 exports.loginAdmin = async (req, res) => {
   try {
-    // Ajout de logs détaillés
-    console.log("=== REQUÊTE ADMIN LOGIN ===");
-    console.log("Headers:", req.headers);
-    console.log("Body complet:", req.body);
-    console.log("Content-Type:", req.headers["content-type"]);
-
     const { email, password } = req.body;
-    console.log("Tentative de connexion admin - Email:", email);
-    console.log(
-      "Tentative de connexion admin - Password:",
-      password ? "[PRÉSENT]" : "[MANQUANT]"
-    );
 
-    if (!email || !password) {
-      console.log("Erreur: Email ou mot de passe manquant");
-      return res.status(400).json({ message: "Email et mot de passe requis" });
-    }
-
+    // Recherche de l'admin
     const admin = await Admin.findOne({ where: { email } });
     if (!admin) {
-      console.log("Admin non trouvé avec cet email:", email);
       return res
         .status(400)
         .json({ message: "Email ou mot de passe incorrect" });
     }
 
-    console.log("Admin trouvé dans la DB:", {
-      id: admin.id_admin,
-      email: admin.email,
-      nom: admin.nom,
-    });
-
-    // Pour le développement seulement - comparaison directe du mot de passe
-    const isMatch = password === admin.mdp;
-    // const isMatch = await bcrypt.compare(password, admin.mdp); // Version originale
-
-    console.log("Mot de passe stocké en DB:", admin.mdp);
-    console.log("Mot de passe fourni:", password);
-    console.log(
-      "Vérification du mot de passe:",
-      isMatch ? "RÉUSSIE" : "ÉCHOUÉE"
-    );
-
-    if (!isMatch) {
-      console.log("Échec d'authentification: Mot de passe incorrect");
+    // Comparaison directe du mot de passe (à remplacer par bcrypt en production)
+    if (password !== admin.mdp) {
       return res
         .status(400)
         .json({ message: "Email ou mot de passe incorrect" });
     }
 
-    // Création du token JWT
-    console.log("Création du token JWT");
-    const tokenPayload = {
-      id: admin.id_admin,
-      email: admin.email,
-      isAdmin: true,
-    };
-    console.log("Payload du token:", tokenPayload);
-
-    // Vérifier que jwt est bien défini
-    if (typeof jwt !== "object" || typeof jwt.sign !== "function") {
-      console.error("ERREUR CRITIQUE: jwt n'est pas correctement défini");
-      return res.status(500).json({ message: "Erreur serveur avec JWT" });
-    }
-
+    // Génération du token JWT
     const token = jwt.sign(
-      tokenPayload,
-      process.env.JWT_SECRET || "default_secret_key_for_development", // Clé par défaut pour développement
+      { id: admin.id_admin, email: admin.email, isAdmin: true },
+      process.env.JWT_SECRET || "default_secret_key",
       { expiresIn: "1d" }
     );
 
-    console.log("Token JWT créé avec succès");
-
-    // Envoi de la réponse
-    const response = {
+    res.status(200).json({
       message: "Connexion admin réussie",
       token,
       admin: {
@@ -91,18 +40,25 @@ exports.loginAdmin = async (req, res) => {
         nom: admin.nom,
         email: admin.email,
       },
-    };
-    console.log("Réponse envoyée:", response);
-
-    res.status(200).json(response);
-  } catch (error) {
-    console.error("ERREUR lors de la connexion admin:", error);
-    console.error("Stack trace:", error.stack);
-    res.status(500).json({
-      message: "Erreur serveur",
-      details:
-        process.env.NODE_ENV === "development" ? error.message : undefined,
     });
+  } catch (error) {
+    console.error("Erreur lors de la connexion admin:", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+// Gestion des cryptomonnaies
+
+// Récupérer toutes les cryptomonnaies
+exports.getAllCryptos = async (req, res) => {
+  try {
+    const cryptos = await Crypto.findAll({
+      order: [["prix", "DESC"]], // Trier par prix décroissant
+    });
+    res.status(200).json(cryptos);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des cryptomonnaies:", error);
+    res.status(500).json({ message: "Erreur serveur" });
   }
 };
 
@@ -114,7 +70,7 @@ exports.addCrypto = async (req, res) => {
     const crypto = await Crypto.create({
       nom,
       symbol,
-      prix,
+      prix: parseFloat(prix),
     });
 
     res.status(201).json({
@@ -138,10 +94,11 @@ exports.updateCrypto = async (req, res) => {
       return res.status(404).json({ message: "Cryptomonnaie non trouvée" });
     }
 
+    // Mise à jour avec les nouvelles valeurs
     await crypto.update({
       nom: nom || crypto.nom,
       symbol: symbol || crypto.symbol,
-      prix: prix || crypto.prix,
+      prix: prix ? parseFloat(prix) : crypto.prix,
     });
 
     res.status(200).json({
